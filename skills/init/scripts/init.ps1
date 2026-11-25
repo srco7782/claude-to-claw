@@ -33,7 +33,7 @@ if ($Help) {
   -Role TEXT        agent 角色 / 使命
   -Tone TEXT        個性 / 語氣
   -Policies TEXT    工作政策，用 ';' 或換行分隔
-  -Language TEXT    偏好語言（預設：English）
+  -Language TEXT    偏好語言（預設：繁體中文（zh-TW））
   -Upgrade          既有 workspace：只更新 CLAUDE.md，並補上缺少的檔案
   -NonInteractive   不問問題，只使用旗標與預設值
   -Help             顯示本說明
@@ -79,7 +79,7 @@ $Name = OneLine (Ask $Name 'agent 名稱' 'Claw')
 $Role = OneLine (Ask $Role 'agent 角色 / 使命' '常駐助理。把每件任務交給 Subagent。')
 $Tone = OneLine (Ask $Tone '個性 / 語氣' '簡潔、友善、直接。')
 $Policies = Ask $Policies "工作政策（用 ';' 分隔）" ''
-$Language = OneLine (Ask $Language '偏好語言' 'English')
+$Language = OneLine (Ask $Language '偏好語言' '繁體中文')
 
 # 把自由格式的多項文字轉成「- 項目」行（依換行、';'、全形分號分割）。
 function ToBullets([string]$text) {

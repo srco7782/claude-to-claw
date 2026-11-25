@@ -37,7 +37,7 @@ usage() {
   --role TEXT         agent 角色 / 使命
   --tone TEXT         個性 / 語氣
   --policies TEXT     工作政策，用 ';' 或換行分隔
-  --language TEXT     偏好語言（預設：English）
+  --language TEXT     偏好語言（預設：繁體中文（zh-TW））
   --upgrade           既有 workspace：只更新 CLAUDE.md，並補上缺少的檔案
   --non-interactive   不問問題，只使用旗標與預設值
   --help              顯示本說明
@@ -101,7 +101,7 @@ ask NAME "agent 名稱" "Claw"
 ask ROLE "agent 角色 / 使命" "常駐助理。把每件任務交給 Subagent。"
 ask TONE "個性 / 語氣" "簡潔、友善、直接。"
 ask POLICIES "工作政策（用 ';' 分隔）" ""
-ask LANGUAGE "偏好語言" "English"
+ask LANGUAGE "偏好語言" "繁體中文"
 
 NAME="$(oneline "$NAME")"
 ROLE="$(oneline "$ROLE")"

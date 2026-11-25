@@ -81,7 +81,7 @@ bash skills/init/scripts/init.sh \
   --role "把每件任務交給 Subagent 的個人助理" \
   --tone "簡潔、友善" \
   --policies "刪除任何東西前先詢問; 回覆保持簡短" \
-  --language English \
+  --language "繁體中文" \
   --non-interactive
 ```
 
@@ -93,6 +93,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File skills\init\scripts\init.ps1
 ```
 
 旗標：`--target`、`--name`、`--role`、`--tone`、`--policies`、`--language`、`--upgrade`、`--non-interactive`、`--help`（PowerShell：`-Target`、`-Name`、`-Role`、`-Tone`、`-Policies`、`-Language`、`-Upgrade`、`-NonInteractive`、`-Help`）。
+未指定 `--language` 時，預設為繁體中文（zh-TW）。
 
 ### 啟動助理
 

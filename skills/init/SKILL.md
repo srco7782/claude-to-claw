@@ -58,6 +58,7 @@ description: 建立或升級 claude-to-claw workspace。這是給 Claude Code �
 - 問規則、工作政策與偏好語言（對應 `POLICY.md` 與 `USER.md`）。
 - 接受多個項目。script 會把每一項寫成一行一個項目符號。
 - 接受略過的答案。script 會套用預設值。
+- 未指定偏好語言時，預設為繁體中文（zh-TW）。
 
 ## 步驟 4：執行 script
 
