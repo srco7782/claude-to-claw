@@ -1,0 +1,19 @@
+{
+  "name": "claude-to-claw",
+  "version": "0.1.0",
+  "description": "Bring an OpenClaw-style persistent assistant workspace to Claude Code + Remote Control: a Dispatcher main agent, resumable subagents, and strict file-based memory.",
+  "author": {
+    "name": "srco7782"
+  },
+  "homepage": "https://github.com/srco7782/claude-to-claw",
+  "repository": "https://github.com/srco7782/claude-to-claw",
+  "license": "MIT",
+  "keywords": [
+    "assistant",
+    "dispatcher",
+    "subagents",
+    "memory",
+    "remote-control",
+    "workspace"
+  ]
+}
