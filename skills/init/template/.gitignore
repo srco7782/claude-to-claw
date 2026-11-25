@@ -1,0 +1,7 @@
+.DS_Store
+Thumbs.db
+*.bak
+.claude/settings.local.json
+.claude-to-claw/backups/
+.claude-to-claw/last-date
+.claude-to-claw/pending-rollover
