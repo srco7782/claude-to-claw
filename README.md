@@ -1,149 +1,119 @@
 # claude-to-claw
 
-Bring an OpenClaw-style persistent assistant workspace to **Claude Code + Remote Control**.
+把 OpenClaw 風格的常駐助理 workspace 帶到 **Claude Code + Remote Control**。
 
-- One workspace = one persistent session.
-- The main agent is an **assistant whose role is Dispatcher**.
-- The Dispatcher never does task work itself; it stays responsive for chat (for example from your phone via Remote Control) and delegates every task to a subagent.
-- Everything that must survive restarts lives in plain files, not in the model's context.
+- 一個 workspace 等於一個持續的 session。
+- 主 agent 是**助理**，角色是 **Dispatcher**。
+- Dispatcher 自己不做任務。它保持可回應，例如透過手機上的 Remote Control 聊天。它把每件任務交給 Subagent。
+- 必須留下的資訊都寫在純文字檔。不要依賴模型的 context。
 
-> 繁體中文概覽請見 [下方](#繁體中文概覽)。
-
-## Architecture
+## 架構
 
 ### 1. Dispatcher
 
-For every incoming message the Dispatcher consults `memory/tasks.md` and routes:
+Dispatcher 對每則進來的訊息先讀 `memory/tasks.md`，再路由：
 
-- Follow-up on an existing task -> `SendMessage` to that task's existing subagent, so its context stays intact.
-- Brand-new task -> spawn a new resumable subagent (`worker` or `researcher`), record it in `memory/tasks.md`.
-- Chitchat, status questions, clarifications -> answer directly.
+- 既有任務的後續：用 `SendMessage` 交給該任務既有的 Subagent。這樣可保留 context。
+- 全新任務：啟動可續接的 Subagent（`worker` 或 `researcher`）。把它寫入 `memory/tasks.md`。
+- 閒聊、進度詢問、澄清問題：直接回答。
 
-### 2. Resumable subagents
+### 2. 可續接的 Subagent
 
-- `worker` (does things) and `researcher` (reads and investigates) live in `.claude/agents/`.
-- They are spawned in the background and resumed with `SendMessage`, so one task keeps one conversation.
-- They write findings to the daily note and return short summaries to the Dispatcher.
+- `worker`（執行工作）和 `researcher`（讀取與調查）放在 `.claude/agents/`。
+- 在背景啟動，並用 `SendMessage` 續接。一個任務維持一段對話。
+- 它們把發現寫入每日紀錄，並向 Dispatcher 回傳簡短摘要。
 
-### 3. OpenClaw-style file memory
+### 3. OpenClaw 風格的檔案記憶
 
-| File | Purpose |
-| ---- | ------- |
-| `CLAUDE.md` | Dispatcher rules and routing; `@`-imports the three files below. Managed by `init`. |
-| `SOUL.md` | Who the agent is: name, persona, tone, mission. |
-| `POLICY.md` | How the agent must behave: guardrails, approval gates, workflow rules. |
-| `MEMORY.md` | The must-remember file. Anything you say "remember ..." about goes here. |
-| `USER.md` | Stable user profile and environment (OS, workspace path, language). |
-| `memory/tasks.md` | Task registry: `Task ID \| Topic \| Subagent ID \| Agent Type \| Status \| Updated \| Notes`. |
-| `memory/YYYY-MM-DD.md` | Daily log and daily compacted summary. |
+| 檔案 | 用途 |
+| ---- | ---- |
+| `CLAUDE.md` | Dispatcher 規則與路由。用 `@` 載入下面三個檔。由 `init` 管理。 |
+| `SOUL.md` | 你是誰：名稱、個性、語氣、使命。 |
+| `POLICY.md` | 你必須怎麼做：護欄、需先詢問的事項、工作流程規則。 |
+| `MEMORY.md` | 必須記住的檔。你說 "remember ..." 或「記住...」的內容寫在這裡。 |
+| `USER.md` | 穩定的使用者資料與環境（OS、workspace 路徑、語言）。 |
+| `memory/tasks.md` | 任務登記表：`Task ID \| Topic \| Subagent ID \| Agent Type \| Status \| Updated \| Notes`。 |
+| `memory/YYYY-MM-DD.md` | 每日紀錄，以及每日 compact 後的摘要。 |
 
-Format rule for all memory-style files: **one rule or fact per line, bulleted** (`- ...` or `- [YYYY-MM-DD] ...`).
+記憶類檔案的格式規則：**一行一條規則或事實，使用項目符號**（`- ...` 或 `- [YYYY-MM-DD] ...`）。
 
-### 4. Hooks (daily compaction and backup)
+### 4. Hook（每日 compact 與備份）
 
-- `SessionStart` and `UserPromptSubmit`: detect a date change and flag a pending rollover; the Dispatcher then spawns a background worker to compact the previous day, distill `MEMORY.md`, and archive finished tasks.
-- `PreCompact`: saves the transcript metadata to `.claude-to-claw/backups/` and logs it in today's note.
+- `SessionStart` 與 `UserPromptSubmit`：偵測日期變更並標記 pending rollover。Dispatcher 接著啟動背景 `worker`。該 `worker` 對前一日做 compact，提煉 `MEMORY.md`，並歸檔已完成任務。
+- `PreCompact`：把 transcript metadata 存到 `.claude-to-claw/backups/`，並寫入今日紀錄。
 
-## Install
+## 安裝
 
-As a Claude Code plugin:
+以 Claude Code plugin 安裝：
 
 ```text
 /plugin marketplace add srco7782/claude-to-claw
 /plugin install claude-to-claw@claude-to-claw
 ```
 
-Or load it from a local clone:
+或從本機 clone 載入：
 
 ```bash
 git clone https://github.com/srco7782/claude-to-claw.git
 claude --plugin-dir ./claude-to-claw
 ```
 
-## Create a workspace
+## 建立 workspace
 
-### Interactive (recommended)
+### 互動式（建議）
 
-Inside Claude Code run:
+在 Claude Code 裡執行：
 
 ```text
 /claude-to-claw:init
 ```
 
-Claude asks for the agent's name first, then the workspace location, then (for new workspaces) role, tone, policies, and language, and runs the init script for you.
+Claude 先問 agent 名稱，再問 workspace 位置。若是新 workspace，接著問角色、語氣、政策與語言，然後替你執行 init script。
 
-### Direct script usage
+### 直接執行 script
 
-macOS / Linux / WSL:
+macOS / Linux / WSL：
 
 ```bash
 bash skills/init/scripts/init.sh \
   --target ~/Documents/claude-claw \
   --name Claw \
-  --role "Personal assistant that dispatches every task" \
-  --tone "Concise and friendly" \
-  --policies "Ask before deleting anything; Keep replies short" \
-  --language English \
+  --role "把每件任務交給 Subagent 的個人助理" \
+  --tone "簡潔、友善" \
+  --policies "刪除任何東西前先詢問; 回覆保持簡短" \
+  --language "繁體中文" \
   --non-interactive
 ```
 
-Windows PowerShell:
+Windows PowerShell：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File skills\init\scripts\init.ps1 `
   -Target "$env:USERPROFILE\Documents\claude-claw" -Name Claw -NonInteractive
 ```
 
-Flags: `--target`, `--name`, `--role`, `--tone`, `--policies`, `--language`, `--upgrade`, `--non-interactive`, `--help` (PowerShell: `-Target`, `-Name`, `-Role`, `-Tone`, `-Policies`, `-Language`, `-Upgrade`, `-NonInteractive`, `-Help`).
+旗標：`--target`、`--name`、`--role`、`--tone`、`--policies`、`--language`、`--upgrade`、`--non-interactive`、`--help`（PowerShell：`-Target`、`-Name`、`-Role`、`-Tone`、`-Policies`、`-Language`、`-Upgrade`、`-NonInteractive`、`-Help`）。
+未指定 `--language` 時，預設為繁體中文（zh-TW）。
 
-### Start the assistant
+### 啟動助理
 
 ```bash
 cd ~/Documents/claude-claw
 claude
-# inside the session:
+# 在 session 裡執行：
 /remote-control
 ```
 
-## Safe re-run and upgrade
+## 安全重跑與升級
 
-Re-running `init` on an existing workspace is always safe:
+在既有 workspace 重跑 `init` 一律安全。
 
-- `CLAUDE.md` is refreshed from the template; if it changed, the old copy is saved to `.claude-to-claw/backups/CLAUDE.md.<timestamp>.bak` first.
-- Missing template files are added.
-- Your files are never overwritten: `SOUL.md`, `POLICY.md`, `MEMORY.md`, `USER.md`, `memory/`, `skills/`, `.gitignore`, `.claude/` (agents, hooks, settings), and `.claude-to-claw/profile.json`.
-- `.claude-to-claw/manifest.json` records `template_version`, `initialized_at`, `updated_at`, and `os`.
-- The script prints a summary of `[updated]`, `[backed up]`, `[added]`, and `[kept]` items.
-- Because `CLAUDE.md` is managed, keep personal rules in `SOUL.md` / `POLICY.md` / `MEMORY.md`, not in `CLAUDE.md`.
-
-## 繁體中文概覽
-
-**claude-to-claw** 把 OpenClaw 風格的「常駐助理工作區」帶到 Claude Code + Remote Control：
-
-- 一個工作區 = 一個持續運作的 session。
-- 主 agent 是「助理」，角色是**調度員（Dispatcher）**：自己不做任何任務，只負責聊天與分派，因此手機上透過 Remote Control 隨時都能得到快速回應。
-- 每則訊息都先查 `memory/tasks.md`：
-  - 屬於既有任務 -> 用 `SendMessage` 把補充內容交給原本的 subagent，上下文不中斷。
-  - 全新任務 -> 建立可續用的 subagent（`worker` 或 `researcher`）並登記到 `memory/tasks.md`。
-  - 閒聊、進度詢問 -> 直接回覆。
-- 記憶全部寫在檔案裡，不依賴對話上下文：
-  - `SOUL.md`：我是誰（名稱、個性、語氣、使命）。
-  - `POLICY.md`：我該怎麼做（規則、護欄、需確認的事項）。
-  - `MEMORY.md`：必須記住的事；你說「記住…」就會立刻寫入這裡。
-  - `USER.md`：使用者資料與環境設定。
-  - `memory/YYYY-MM-DD.md`：每日紀錄與每日壓縮摘要。
-  - 格式一律「一行一條規則／事實」，使用項目符號。
-- Hooks 會在跨日時觸發背景壓縮，並在 context 壓縮前備份。
-
-安裝：
-
-```text
-/plugin marketplace add srco7782/claude-to-claw
-/plugin install claude-to-claw@claude-to-claw
-/claude-to-claw:init
-```
-
-重複執行 `init` 是安全的：只會更新 `CLAUDE.md`（內容有變時先備份）並補上缺少的範本檔案，絕不覆蓋你的 `SOUL.md`、`POLICY.md`、`MEMORY.md`、`USER.md`、`memory/`、`skills/`、`.claude/` 與 `.claude-to-claw/profile.json`。
+- script 會用範本更新 `CLAUDE.md`。若內容不同，先把舊檔存到 `.claude-to-claw/backups/CLAUDE.md.<timestamp>.bak`。
+- script 會補上缺少的範本檔。
+- script 絕不覆寫你的檔案：`SOUL.md`、`POLICY.md`、`MEMORY.md`、`USER.md`、`memory/`、`skills/`、`.gitignore`、`.claude/`（agents、hooks、settings）與 `.claude-to-claw/profile.json`。
+- `.claude-to-claw/manifest.json` 記錄 `template_version`、`initialized_at`、`updated_at` 與 `os`。
+- script 會列出 `[updated]`、`[backed up]`、`[added]`、`[kept]` 項目。
+- `CLAUDE.md` 由 `init` 管理。把個人規則寫在 `SOUL.md`、`POLICY.md` 或 `MEMORY.md`。不要寫在 `CLAUDE.md`。
 
 ## License
 

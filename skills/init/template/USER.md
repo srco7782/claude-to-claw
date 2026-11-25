@@ -1,14 +1,14 @@
 # USER
 
-- This file holds the stable user profile and environment settings.
-- Format: one item per line, bulleted.
+- 本檔存放穩定的使用者資料與環境設定。
+- 格式：一行一項，使用項目符號。
 
-## Environment
+## 環境
 
-- Preferred language: {{PREFERRED_LANGUAGE}}
-- Workspace path: {{WORKSPACE_PATH}}
-- OS: {{OS}}
+- 偏好語言：{{PREFERRED_LANGUAGE}}
+- Workspace 路徑：{{WORKSPACE_PATH}}
+- OS：{{OS}}
 
-## Profile
+## 資料
 
-- Add stable facts about the user here (role, timezone, working hours).
+- 在這裡新增關於使用者的穩定事實（角色、時區、工作時間）。

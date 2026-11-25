@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# claude-to-claw workspace initializer (POSIX / macOS / Linux / WSL).
-# Keep feature-equivalent with init.ps1.
+# claude-to-claw workspace 初始化 script（POSIX / macOS / Linux / WSL）。
+# 與 init.ps1 保持功能對等。
 #
-# Rules:
-# - CLAUDE.md is always refreshed from the template (backup first if it differs).
-# - Every other existing file is left untouched.
-# - Missing template files are added.
+# 規則：
+# - 一律用範本更新 CLAUDE.md（內容不同時先備份）。
+# - 其他既有檔案一律不改動。
+# - 只補上缺少的範本檔。
 set -eu
 
 TEMPLATE_VERSION="0.1.0"
@@ -27,42 +27,42 @@ NON_INTERACTIVE=0
 
 usage() {
   cat <<'EOF'
-Usage: init.sh [options]
+用法：init.sh [options]
 
-Create or safely upgrade a claude-to-claw workspace.
+建立或安全升級 claude-to-claw workspace。
 
-Options:
-  --target DIR        Workspace directory (default depends on OS)
-  --name NAME         Agent name (default: Claw)
-  --role TEXT         Agent role / mission
-  --tone TEXT         Persona / tone
-  --policies TEXT     Working policies; separate items with ';' or newlines
-  --language TEXT     Preferred language (default: English)
-  --upgrade           Existing workspace: refresh CLAUDE.md and add missing files only
-  --non-interactive   Never prompt; use flags and defaults
-  --help              Show this help
+選項：
+  --target DIR        workspace 目錄（預設值依 OS 而定）
+  --name NAME         agent 名稱（預設：Claw）
+  --role TEXT         agent 角色 / 使命
+  --tone TEXT         個性 / 語氣
+  --policies TEXT     工作政策，用 ';' 或換行分隔
+  --language TEXT     偏好語言（預設：繁體中文（zh-TW））
+  --upgrade           既有 workspace：只更新 CLAUDE.md，並補上缺少的檔案
+  --non-interactive   不問問題，只使用旗標與預設值
+  --help              顯示本說明
 
-Re-running is safe: only CLAUDE.md is refreshed (with a backup) and missing
-template files are added. Nothing else is overwritten.
+重跑是安全的：只會更新 CLAUDE.md（必要時先備份），並補上缺少的
+範本檔。其他檔案不會被覆寫。
 EOF
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --target)   [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; TARGET="$2"; shift 2 ;;
-    --name)     [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; NAME="$2"; shift 2 ;;
-    --role)     [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; ROLE="$2"; shift 2 ;;
-    --tone)     [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; TONE="$2"; shift 2 ;;
-    --policies) [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; POLICIES="$2"; shift 2 ;;
-    --language) [ $# -ge 2 ] || { echo "Missing value for $1" >&2; exit 2; }; LANGUAGE="$2"; shift 2 ;;
+    --target)   [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; TARGET="$2"; shift 2 ;;
+    --name)     [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; NAME="$2"; shift 2 ;;
+    --role)     [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; ROLE="$2"; shift 2 ;;
+    --tone)     [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; TONE="$2"; shift 2 ;;
+    --policies) [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; POLICIES="$2"; shift 2 ;;
+    --language) [ $# -ge 2 ] || { echo "缺少 $1 的值" >&2; exit 2; }; LANGUAGE="$2"; shift 2 ;;
     --upgrade) UPGRADE=1; shift ;;
     --non-interactive) NON_INTERACTIVE=1; shift ;;
     --help|-h) usage; exit 0 ;;
-    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+    *) echo "未知選項：$1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
-[ -d "$TEMPLATE_DIR" ] || { echo "Template directory not found: $TEMPLATE_DIR" >&2; exit 1; }
+[ -d "$TEMPLATE_DIR" ] || { echo "找不到範本目錄：$TEMPLATE_DIR" >&2; exit 1; }
 
 case "$(uname -s)" in
   Darwin) OS_NAME="macos"; DEFAULT_TARGET="$HOME/Documents/claude-claw" ;;
@@ -73,7 +73,7 @@ esac
 trim() { printf '%s' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
 oneline() { trim "$(printf '%s' "$1" | tr '\r\n' '  ')"; }
 
-# Prompt only when interactive, not upgrading, and the value is still unset.
+# 只在互動模式、非升級、且該值仍為空時詢問。
 ask() { # var_name prompt default
   local current
   eval "current=\${$1}"
@@ -87,28 +87,28 @@ ask() { # var_name prompt default
   eval "$1=\$3"
 }
 
-ask TARGET "Workspace directory" "$DEFAULT_TARGET"
+ask TARGET "workspace 目錄" "$DEFAULT_TARGET"
 TARGET="${TARGET/#\~/$HOME}"
 mkdir -p "$TARGET"
 TARGET="$(cd "$TARGET" && pwd)"
 
-# Skip persona questions for an existing workspace.
+# 既有 workspace 略過個性問題。
 EXISTING=0
 if [ -f "$TARGET/.claude-to-claw/manifest.json" ] || [ -f "$TARGET/CLAUDE.md" ]; then EXISTING=1; fi
 [ "$EXISTING" -eq 1 ] && UPGRADE=1
 
-ask NAME "Agent name" "Claw"
-ask ROLE "Agent role / mission" "Persistent assistant that dispatches every task to subagents."
-ask TONE "Persona / tone" "Concise, friendly, and direct."
-ask POLICIES "Working policies (separate with ';')" ""
-ask LANGUAGE "Preferred language" "English"
+ask NAME "agent 名稱" "Claw"
+ask ROLE "agent 角色 / 使命" "常駐助理。把每件任務交給 Subagent。"
+ask TONE "個性 / 語氣" "簡潔、友善、直接。"
+ask POLICIES "工作政策（用 ';' 分隔）" ""
+ask LANGUAGE "偏好語言" "繁體中文"
 
 NAME="$(oneline "$NAME")"
 ROLE="$(oneline "$ROLE")"
 TONE="$(oneline "$TONE")"
 LANGUAGE="$(oneline "$LANGUAGE")"
 
-# Turn free-form multi-item text into "- item" lines (split on newline, ';', '；').
+# 把自由格式的多項文字轉成「- 項目」行（依換行、';'、'；' 分割）。
 to_bullets() {
   local text="$1" line
   text="${text//；/$'\n'}"
@@ -138,7 +138,7 @@ json_escape() {
 
 POLICY_BULLETS="$(to_bullets "$POLICIES")"
 
-# Render a template to a destination, filling placeholders.
+# 把範本寫到目標檔，並填入占位符。
 render() { # src dest
   local line
   : > "$2"
@@ -163,14 +163,14 @@ note() { # list_name text
 }
 CHANGED=0
 
-# --- CLAUDE.md: always refreshed (with backup) ---
+# --- CLAUDE.md：一律更新（必要時先備份）---
 SRC_CLAUDE="$TEMPLATE_DIR/CLAUDE.md"
 DST_CLAUDE="$TARGET/CLAUDE.md"
 if [ ! -e "$DST_CLAUDE" ]; then
   cp "$SRC_CLAUDE" "$DST_CLAUDE"
   note ADDED "CLAUDE.md"; CHANGED=1
 elif cmp -s "$SRC_CLAUDE" "$DST_CLAUDE"; then
-  note KEPT "CLAUDE.md (already up to date)"
+  note KEPT "CLAUDE.md（已是最新）"
 else
   mkdir -p "$TARGET/.claude-to-claw/backups"
   BACKUP_REL=".claude-to-claw/backups/CLAUDE.md.$(date +%Y%m%d-%H%M%S).bak"
@@ -180,7 +180,7 @@ else
   note UPDATED "CLAUDE.md"; CHANGED=1
 fi
 
-# --- Everything else: add only when missing ---
+# --- 其他檔案：只在缺少時新增 ---
 while IFS= read -r src; do
   rel="${src#"$TEMPLATE_DIR"/}"
   [ "$rel" = "CLAUDE.md" ] && continue
@@ -202,12 +202,12 @@ done <<EOF
 $(find "$TEMPLATE_DIR" -type f | LC_ALL=C sort)
 EOF
 
-# Keep hook scripts executable (also fixes workspaces copied without the mode bit).
+# 保持 hook script 可執行（也修正複製後缺少執行權限的 workspace）。
 for hook in "$TARGET"/.claude/hooks/*.sh; do
   if [ -f "$hook" ] && [ ! -x "$hook" ]; then chmod +x "$hook"; fi
 done
 
-# --- .claude-to-claw/profile.json: created once ---
+# --- .claude-to-claw/profile.json：只建立一次 ---
 STATE="$TARGET/.claude-to-claw"
 mkdir -p "$STATE"
 PROFILE="$STATE/profile.json"
@@ -247,7 +247,7 @@ if [ -f "$MANIFEST" ]; then
   old_ver="$(sed -n 's/.*"template_version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$MANIFEST" | head -n 1)"
   old_os="$(sed -n 's/.*"os"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$MANIFEST" | head -n 1)"
   [ -n "$old_init" ] && INITIALIZED_AT="$old_init"
-  # Nothing changed this run: keep the manifest (and its updated_at) as is.
+  # 本次沒有改動：保留 manifest（含 updated_at）。
   if [ "$CHANGED" -eq 0 ] && [ "$old_ver" = "$TEMPLATE_VERSION" ] && [ "$old_os" = "$OS_NAME" ] && [ -n "$old_upd" ]; then
     UPDATED_AT="$old_upd"
   fi
@@ -262,9 +262,9 @@ else
   if [ "$EXISTED" -eq 1 ]; then note UPDATED ".claude-to-claw/manifest.json"; else note ADDED ".claude-to-claw/manifest.json"; fi
 fi
 
-# --- Summary ---
+# --- 摘要 ---
 echo "claude-to-claw workspace: $TARGET"
-[ "$EXISTING" -eq 1 ] && echo "Mode: upgrade of an existing workspace" || echo "Mode: new workspace"
+[ "$EXISTING" -eq 1 ] && echo "模式：升級既有 workspace" || echo "模式：新 workspace"
 echo
 print_list() { # label text
   [ -n "$2" ] || return 0
@@ -277,4 +277,4 @@ print_list "backed up" "$BACKED"
 print_list added "$ADDED"
 print_list kept "$KEPT"
 echo
-echo "Next: cd \"$TARGET\" && claude   # then run /remote-control"
+echo "下一步：cd \"$TARGET\" && claude   # 然後執行 /remote-control"

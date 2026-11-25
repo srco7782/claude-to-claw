@@ -56,10 +56,10 @@ if (-not (Test-Path $PendingFile)) { exit 0 }
 $Lines = [IO.File]::ReadAllLines($PendingFile)
 $FromDate = (($Lines | Where-Object { $_ -like 'from_date=*' } | Select-Object -First 1) -replace '^from_date=', '')
 $ToDate = (($Lines | Where-Object { $_ -like 'to_date=*' } | Select-Object -First 1) -replace '^to_date=', '')
-if (-not $FromDate) { $FromDate = 'previous day' }
+if (-not $FromDate) { $FromDate = '前一日' }
 if (-not $ToDate) { $ToDate = $Today }
 
-$Msg = "[claude-to-claw Daily Rollover] Date changed ($FromDate -> $ToDate). Check memory/tasks.md: if no rollover worker is already running, dispatch a background worker subagent to compact prior day notes into memory/<date>.md, distill durable facts into MEMORY.md, archive completed rows in memory/tasks.md, and delete .claude-to-claw/pending-rollover when done."
+$Msg = "[claude-to-claw 每日 rollover] 日期已變更（$FromDate -> $ToDate）。請先讀 memory/tasks.md。若尚無 rollover 的 worker 在執行，請啟動背景 worker Subagent，把前一日紀錄 compact 到 memory/<date>.md，把持久事實提煉到 MEMORY.md，把已完成列歸檔，完成後刪除 .claude-to-claw/pending-rollover。"
 
 if ($Event -eq 'prompt') {
   @{
