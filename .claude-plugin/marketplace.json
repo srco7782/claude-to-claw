@@ -4,13 +4,13 @@
     "name": "srco7782"
   },
   "metadata": {
-    "description": "Marketplace for claude-to-claw, a persistent Dispatcher-style assistant workspace for Claude Code."
+    "description": "claude-to-claw 的 marketplace。提供給 Claude Code 使用的常駐 Dispatcher 助理 workspace。"
   },
   "plugins": [
     {
       "name": "claude-to-claw",
       "source": "./",
-      "description": "Bring an OpenClaw-style persistent assistant workspace to Claude Code + Remote Control: a Dispatcher main agent, resumable subagents, and strict file-based memory.",
+      "description": "把 OpenClaw 風格的常駐助理 workspace 帶到 Claude Code + Remote Control：Dispatcher 主 agent、可續接的 Subagent，以及嚴格的檔案記憶。",
       "version": "0.1.0",
       "author": {
         "name": "srco7782"

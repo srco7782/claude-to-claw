@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Detect date changes across sessions or midnight inside an active Remote Control session.
+# 偵測跨 session 或正在進行的 Remote Control session 跨日變更。
 set -eu
 
 EVENT="${1:-session-start}"
@@ -65,7 +65,7 @@ fi
 
 FROM_DATE="$(sed -n 's/^from_date=//p' "$PENDING_FILE" | head -n 1)"
 TO_DATE="$(sed -n 's/^to_date=//p' "$PENDING_FILE" | head -n 1)"
-MSG="[claude-to-claw Daily Rollover] Date changed (${FROM_DATE:-previous day} -> ${TO_DATE:-$TODAY}). Check memory/tasks.md: if no rollover worker is already running, dispatch a background worker subagent to compact prior day notes into memory/<date>.md, distill durable facts into MEMORY.md, archive completed rows in memory/tasks.md, and delete .claude-to-claw/pending-rollover when done."
+MSG="[claude-to-claw 每日 rollover] 日期已變更（${FROM_DATE:-前一日} -> ${TO_DATE:-$TODAY}）。請先讀 memory/tasks.md。若尚無 rollover 的 worker 在執行，請啟動背景 worker Subagent，把前一日紀錄 compact 到 memory/<date>.md，把持久事實提煉到 MEMORY.md，把已完成列歸檔，完成後刪除 .claude-to-claw/pending-rollover。"
 
 if [ "$EVENT" = "prompt" ]; then
   if command -v python3 >/dev/null 2>&1; then

@@ -1,10 +1,10 @@
-# claude-to-claw workspace initializer (Windows PowerShell).
-# Keep feature-equivalent with init.sh.
+# claude-to-claw workspace 初始化 script（Windows PowerShell）。
+# 與 init.sh 保持功能對等。
 #
-# Rules:
-# - CLAUDE.md is always refreshed from the template (backup first if it differs).
-# - Every other existing file is left untouched.
-# - Missing template files are added.
+# 規則：
+# - 一律用範本更新 CLAUDE.md（內容不同時先備份）。
+# - 其他既有檔案一律不改動。
+# - 只補上缺少的範本檔。
 [CmdletBinding()]
 param(
   [string]$Target = '',
@@ -23,30 +23,30 @@ $TemplateVersion = '0.1.0'
 
 if ($Help) {
   @'
-Usage: init.ps1 [options]
+用法：init.ps1 [options]
 
-Create or safely upgrade a claude-to-claw workspace.
+建立或安全升級 claude-to-claw workspace。
 
-Options:
-  -Target DIR       Workspace directory (default: %USERPROFILE%\Documents\claude-claw)
-  -Name NAME        Agent name (default: Claw)
-  -Role TEXT        Agent role / mission
-  -Tone TEXT        Persona / tone
-  -Policies TEXT    Working policies; separate items with ';' or newlines
-  -Language TEXT    Preferred language (default: English)
-  -Upgrade          Existing workspace: refresh CLAUDE.md and add missing files only
-  -NonInteractive   Never prompt; use flags and defaults
-  -Help             Show this help
+選項：
+  -Target DIR       workspace 目錄（預設：%USERPROFILE%\Documents\claude-claw）
+  -Name NAME        agent 名稱（預設：Claw）
+  -Role TEXT        agent 角色 / 使命
+  -Tone TEXT        個性 / 語氣
+  -Policies TEXT    工作政策，用 ';' 或換行分隔
+  -Language TEXT    偏好語言（預設：English）
+  -Upgrade          既有 workspace：只更新 CLAUDE.md，並補上缺少的檔案
+  -NonInteractive   不問問題，只使用旗標與預設值
+  -Help             顯示本說明
 
-Re-running is safe: only CLAUDE.md is refreshed (with a backup) and missing
-template files are added. Nothing else is overwritten.
+重跑是安全的：只會更新 CLAUDE.md（必要時先備份），並補上缺少的
+範本檔。其他檔案不會被覆寫。
 '@ | Write-Output
   exit 0
 }
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $TemplateDir = (Resolve-Path (Join-Path $ScriptDir '..\template') -ErrorAction SilentlyContinue)
-if (-not $TemplateDir) { throw "Template directory not found next to $ScriptDir" }
+if (-not $TemplateDir) { throw "找不到範本目錄，應在 $ScriptDir 的上一層" }
 $TemplateDir = $TemplateDir.Path
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 $OsName = 'windows'
@@ -54,7 +54,7 @@ $DefaultTarget = Join-Path $env:USERPROFILE 'Documents\claude-claw'
 
 function OneLine([string]$s) { return (($s -replace '[\r\n]+', ' ').Trim()) }
 
-# Prompt only when interactive, not upgrading, and the value is still unset.
+# 只在互動模式、非升級、且該值仍為空時詢問。
 function Ask([string]$Current, [string]$Prompt, [string]$Default) {
   if ($Current) { return $Current }
   if (-not $NonInteractive -and -not $Upgrade -and [Environment]::UserInteractive -and -not [Console]::IsInputRedirected) {
@@ -64,24 +64,24 @@ function Ask([string]$Current, [string]$Prompt, [string]$Default) {
   return $Default
 }
 
-$Target = Ask $Target 'Workspace directory' $DefaultTarget
+$Target = Ask $Target 'workspace 目錄' $DefaultTarget
 if ($Target -eq '~' -or $Target.StartsWith('~/') -or $Target.StartsWith('~\')) {
   $Target = Join-Path $env:USERPROFILE $Target.Substring(1).TrimStart('/', '\')
 }
 New-Item -ItemType Directory -Force -Path $Target | Out-Null
 $Target = (Resolve-Path $Target).Path
 
-# Skip persona questions for an existing workspace.
+# 既有 workspace 略過個性問題。
 $Existing = (Test-Path (Join-Path $Target '.claude-to-claw\manifest.json')) -or (Test-Path (Join-Path $Target 'CLAUDE.md'))
 if ($Existing) { $Upgrade = [switch]$true }
 
-$Name = OneLine (Ask $Name 'Agent name' 'Claw')
-$Role = OneLine (Ask $Role 'Agent role / mission' 'Persistent assistant that dispatches every task to subagents.')
-$Tone = OneLine (Ask $Tone 'Persona / tone' 'Concise, friendly, and direct.')
-$Policies = Ask $Policies "Working policies (separate with ';')" ''
-$Language = OneLine (Ask $Language 'Preferred language' 'English')
+$Name = OneLine (Ask $Name 'agent 名稱' 'Claw')
+$Role = OneLine (Ask $Role 'agent 角色 / 使命' '常駐助理。把每件任務交給 Subagent。')
+$Tone = OneLine (Ask $Tone '個性 / 語氣' '簡潔、友善、直接。')
+$Policies = Ask $Policies "工作政策（用 ';' 分隔）" ''
+$Language = OneLine (Ask $Language '偏好語言' 'English')
 
-# Turn free-form multi-item text into "- item" lines (split on newline, ';', full-width ';').
+# 把自由格式的多項文字轉成「- 項目」行（依換行、';'、全形分號分割）。
 function ToBullets([string]$text) {
   $items = @()
   foreach ($raw in ($text -split "[\r\n;；]+")) {
@@ -119,14 +119,14 @@ function SameBytes([string]$A, [string]$B) {
   return [System.Linq.Enumerable]::SequenceEqual([IO.File]::ReadAllBytes($A), [IO.File]::ReadAllBytes($B))
 }
 
-# --- CLAUDE.md: always refreshed (with backup) ---
+# --- CLAUDE.md：一律更新（必要時先備份）---
 $SrcClaude = Join-Path $TemplateDir 'CLAUDE.md'
 $DstClaude = Join-Path $Target 'CLAUDE.md'
 if (-not (Test-Path $DstClaude)) {
   Copy-Item $SrcClaude $DstClaude
   $Added.Add('CLAUDE.md'); $Changed = $true
 } elseif (SameBytes $SrcClaude $DstClaude) {
-  $Kept.Add('CLAUDE.md (already up to date)')
+  $Kept.Add('CLAUDE.md（已是最新）')
 } else {
   $BackupDir = Join-Path $Target '.claude-to-claw\backups'
   New-Item -ItemType Directory -Force -Path $BackupDir | Out-Null
@@ -137,7 +137,7 @@ if (-not (Test-Path $DstClaude)) {
   $Updated.Add('CLAUDE.md'); $Changed = $true
 }
 
-# --- Everything else: add only when missing ---
+# --- 其他檔案：只在缺少時新增 ---
 $Files = Get-ChildItem -Path $TemplateDir -Recurse -File -Force | Sort-Object FullName
 foreach ($f in $Files) {
   $rel = $f.FullName.Substring($TemplateDir.Length).TrimStart('\', '/').Replace('\', '/')
@@ -152,7 +152,7 @@ foreach ($f in $Files) {
   $Added.Add($rel); $Changed = $true
 }
 
-# --- Windows hook settings: settings.windows.json becomes .claude/settings.json ---
+# --- Windows hook settings：把 settings.windows.json 複製成 .claude/settings.json ---
 $SettingsDst = Join-Path $Target '.claude\settings.json'
 if (Test-Path $SettingsDst) {
   $Kept.Add('.claude/settings.json')
@@ -162,7 +162,7 @@ if (Test-Path $SettingsDst) {
   $Added.Add('.claude/settings.json'); $Changed = $true
 }
 
-# --- .claude-to-claw/profile.json: created once ---
+# --- .claude-to-claw/profile.json：只建立一次 ---
 $State = Join-Path $Target '.claude-to-claw'
 New-Item -ItemType Directory -Force -Path $State | Out-Null
 $Profile = Join-Path $State 'profile.json'
@@ -185,7 +185,7 @@ if ($ManifestExisted) {
   try {
     $old = Get-Content -Raw $Manifest | ConvertFrom-Json
     if ($old.initialized_at) { $InitializedAt = [string]$old.initialized_at }
-    # Nothing changed this run: keep the manifest (and its updated_at) as is.
+    # 本次沒有改動：保留 manifest（含 updated_at）。
     if (-not $Changed -and $old.template_version -eq $TemplateVersion -and $old.os -eq $OsName -and $old.updated_at) {
       $UpdatedAt = [string]$old.updated_at
     }
@@ -200,13 +200,13 @@ if ($ManifestExisted -and $OldText -eq $NewManifest) {
   if ($ManifestExisted) { $Updated.Add('.claude-to-claw/manifest.json') } else { $Added.Add('.claude-to-claw/manifest.json') }
 }
 
-# --- Summary ---
+# --- 摘要 ---
 Write-Output "claude-to-claw workspace: $Target"
-if ($Existing) { Write-Output 'Mode: upgrade of an existing workspace' } else { Write-Output 'Mode: new workspace' }
+if ($Existing) { Write-Output '模式：升級既有 workspace' } else { Write-Output '模式：新 workspace' }
 Write-Output ''
 foreach ($i in $Updated) { Write-Output "[updated]  $i" }
 foreach ($i in $Backed)  { Write-Output "[backed up]  $i" }
 foreach ($i in $Added)   { Write-Output "[added]  $i" }
 foreach ($i in $Kept)    { Write-Output "[kept]  $i" }
 Write-Output ''
-Write-Output "Next: cd `"$Target`"; claude   # then run /remote-control"
+Write-Output "下一步：cd `"$Target`"; claude   # 然後執行 /remote-control"

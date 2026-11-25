@@ -1,9 +1,9 @@
 # MEMORY
 
-- This file holds durable facts and key decisions. They must survive restarts.
-- The user says "remember ...": write it here immediately.
-- Format: one fact per line, bulleted, dated: `- [YYYY-MM-DD] ...`.
+- 本檔存放持久事實與關鍵決定。這些內容必須在重啟後留下。
+- 使用者說 "remember ..." 或「記住...」：立即寫入這裡。
+- 格式：一行一條事實，使用項目符號，並加上日期：`- [YYYY-MM-DD] ...`。
 
-## Facts
+## 事實
 
-- [YYYY-MM-DD] Example: the user prefers short answers. (Replace or delete this line.)
+- [YYYY-MM-DD] 範例：使用者偏好簡短回答。（請替換或刪除這一行。）

@@ -23,5 +23,5 @@ $TodayFile = Join-Path $MemoryDir "$Today.md"
 if (-not (Test-Path $TodayFile)) {
   [IO.File]::WriteAllText($TodayFile, "# $Today`n`n", $Utf8)
 }
-$Line = "- [$NowHm] Context compaction triggered; hook metadata saved to ``.claude-to-claw/backups/pre-compact-$Stamp.json``.`n"
+$Line = "- [$NowHm] Context 開始 compact。Hook metadata 已存到 ``.claude-to-claw/backups/pre-compact-$Stamp.json``。`n"
 [IO.File]::AppendAllText($TodayFile, $Line, $Utf8)

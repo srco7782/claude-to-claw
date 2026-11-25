@@ -1,42 +1,42 @@
 ---
 name: init
-description: Set up or upgrade a claude-to-claw workspace, a persistent Dispatcher-style assistant workspace for Claude Code and Remote Control. Ask setup questions, then run the init script. Safe to re-run.
+description: 建立或升級 claude-to-claw workspace。這是給 Claude Code 與 Remote Control 使用的常駐 Dispatcher 助理 workspace。先問設定問題，再執行 init script。可安全重跑。
 ---
 
 # claude-to-claw init
 
-Create or upgrade a persistent assistant workspace.
-Do the steps in order.
-Ask one or two questions at a time. Use a conversational tone.
+建立或升級常駐助理 workspace。
+依序執行下列步驟。
+一次只問一或兩個問題。使用對話語氣。
 
-## Step 1: Agent name (ALWAYS FIRST for a new setup)
+## 步驟 1：Agent 名稱（新設定必須先問這一題）
 
-- Ask for the **agent's name** (for example Claw, Nova, Atlas).
-- The user can upgrade an existing workspace. Then go to Step 2 and ask only for its path.
+- 先問 **agent 名稱**（例如 Claw、Nova、Atlas）。
+- 使用者要升級既有 workspace。改走步驟 2，只問路徑。
 
-## Step 2: Target workspace directory
+## 步驟 2：目標 workspace 目錄
 
-- Ask where the workspace must live. Offer the OS default:
-  - macOS: `~/Documents/claude-claw` (or `~/Documents/<agent-name-slug>`)
-  - Windows: `%USERPROFILE%\Documents\claude-claw`
-  - Linux: `~/workspace/claude-claw` (or `~/Documents/claude-claw`)
-- Expand `~` and environment variables to an absolute path before you use the path.
+- 問 workspace 要放在哪裡。提供該 OS 的預設路徑：
+  - macOS：`~/Documents/claude-claw`（或 `~/Documents/<agent-name-slug>`）
+  - Windows：`%USERPROFILE%\Documents\claude-claw`
+  - Linux：`~/workspace/claude-claw`（或 `~/Documents/claude-claw`）
+- 使用路徑前，先把 `~` 與環境變數展開成絕對路徑。
 
-## Step 3: Check existing state
+## 步驟 3：檢查既有狀態
 
-Check if the target contains `.claude-to-claw/manifest.json` or `CLAUDE.md`.
+檢查目標是否已有 `.claude-to-claw/manifest.json` 或 `CLAUDE.md`。
 
-### EXISTING workspace
+### 既有 workspace
 
-- Use this branch when the target has either file.
-- Use this branch when the user asks to upgrade an existing workspace.
-- Report the state you found.
-- Report `template_version` and `updated_at` from the manifest, if present.
-- Report which of `SOUL.md`, `POLICY.md`, `MEMORY.md`, and `USER.md` exist.
-- Tell the user that a re-run of `init` ONLY does these actions:
-  - It updates `CLAUDE.md`. It first backs up the old `CLAUDE.md` if the content differs.
-  - It adds template files that are missing.
-- Tell the user that `init` never changes these items:
+- 目標已有上述任一檔時，走這個分支。
+- 使用者要求升級既有 workspace 時，也走這個分支。
+- 回報你找到的狀態。
+- 若 manifest 存在，回報其中的 `template_version` 與 `updated_at`。
+- 回報 `SOUL.md`、`POLICY.md`、`MEMORY.md`、`USER.md` 哪些已存在。
+- 告訴使用者，重跑 `init` **只會**做這些事：
+  - 更新 `CLAUDE.md`。若內容不同，先備份舊的 `CLAUDE.md`。
+  - 補上缺少的範本檔。
+- 告訴使用者，`init` 絕不會改這些項目：
   - `SOUL.md`
   - `POLICY.md`
   - `MEMORY.md`
@@ -45,28 +45,28 @@ Check if the target contains `.claude-to-claw/manifest.json` or `CLAUDE.md`.
   - `skills/`
   - `.claude/`
   - `.claude-to-claw/profile.json`
-- **Offer to skip the questions that the user already answered.** Then run with `--upgrade`.
-- Do not ask the persona or policy questions.
-- Ask them only if the user wants to change them.
-- Tell the user to edit `SOUL.md` or `POLICY.md` directly.
+- **提議跳過使用者已經回答過的問題。** 然後用 `--upgrade` 執行。
+- 不要再問個性或政策問題。
+- 只有在使用者要改這些內容時才再問。
+- 告訴使用者直接編輯 `SOUL.md` 或 `POLICY.md`。
 
-### NEW workspace
+### 新 workspace
 
-Ask the remaining setup questions:
+接著問剩下的設定問題：
 
-- Ask for the agent's role, mission, persona, and tone (maps to `SOUL.md`).
-- Ask for rules, working policies, and preferred language (maps to `POLICY.md` and `USER.md`).
-- Accept multiple items. The script writes each item as one bullet per line.
-- Accept a skipped answer. The script applies a default.
+- 問 agent 的角色、使命、個性與語氣（對應 `SOUL.md`）。
+- 問規則、工作政策與偏好語言（對應 `POLICY.md` 與 `USER.md`）。
+- 接受多個項目。script 會把每一項寫成一行一個項目符號。
+- 接受略過的答案。script 會套用預設值。
 
-## Step 4: Run the script
+## 步驟 4：執行 script
 
-- On POSIX, macOS, Linux, and WSL, run `scripts/init.sh` (in the directory of this skill).
-- On Windows, run `scripts/init.ps1` (in the directory of this skill).
-- Pass the answers as flags.
-- Add `--non-interactive` (`-NonInteractive` on Windows).
-- Never edit `template/CLAUDE.md` by hand.
-- Never copy files yourself. Always use the script.
+- 在 POSIX、macOS、Linux、WSL 上，執行 `scripts/init.sh`（在本 skill 的目錄裡）。
+- 在 Windows 上，執行 `scripts/init.ps1`（在本 skill 的目錄裡）。
+- 把答案以旗標傳入。
+- 加上 `--non-interactive`（Windows 用 `-NonInteractive`）。
+- 絕不可手動編輯 `template/CLAUDE.md`。
+- 絕不可自己複製檔案。一律使用 script。
 
 ```bash
 bash "${CLAUDE_SKILL_DIR}/scripts/init.sh" \
@@ -86,28 +86,28 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_SKILL_DIR}/scripts
   -NonInteractive
 ```
 
-- For an existing workspace, pass only `--target`, `--upgrade`, and `--non-interactive`.
-- On Windows, pass `-Target ... -Upgrade -NonInteractive`.
-- Separate multiple policies with `;` or newlines.
+- 既有 workspace 只傳 `--target`、`--upgrade` 與 `--non-interactive`。
+- 在 Windows 上傳 `-Target ... -Upgrade -NonInteractive`。
+- 多條政策用 `;` 或換行分隔。
 
-## Step 5: Check and hand over
+## 步驟 5：檢查並交接
 
-- Read the summary of the script (`[updated]`, `[backed up]`, `[added]`, `[kept]`).
-- Tell the user the summary in brief.
-- Check that these files exist:
+- 讀取 script 的摘要（`[updated]`、`[backed up]`、`[added]`、`[kept]`）。
+- 把摘要簡短告訴使用者。
+- 檢查這些檔案是否存在：
   - `<target>/CLAUDE.md`
   - `<target>/SOUL.md`
   - `<target>/POLICY.md`
   - `<target>/MEMORY.md`
   - `<target>/.claude-to-claw/manifest.json`
-- Show the user how to start the assistant with Remote Control:
+- 告訴使用者如何用 Remote Control 啟動助理：
 
 ```bash
 cd <workspace>
 claude
-# then, inside the session:
+# 然後在 session 裡執行：
 /remote-control
 ```
 
-- Tell the user that the workspace is one persistent session.
-- Tell the user that the main agent is a Dispatcher. It delegates every task to subagents.
+- 告訴使用者：這個 workspace 是一個持續的 session。
+- 告訴使用者：主 agent 是 Dispatcher。它把每件任務交給 Subagent。

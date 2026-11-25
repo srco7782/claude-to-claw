@@ -1,7 +1,7 @@
 {
   "name": "claude-to-claw",
   "version": "0.1.0",
-  "description": "Bring an OpenClaw-style persistent assistant workspace to Claude Code + Remote Control: a Dispatcher main agent, resumable subagents, and strict file-based memory.",
+  "description": "把 OpenClaw 風格的常駐助理 workspace 帶到 Claude Code + Remote Control：Dispatcher 主 agent、可續接的 Subagent，以及嚴格的檔案記憶。",
   "author": {
     "name": "srco7782"
   },
